@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -12,9 +13,13 @@ export default {
 	theme: {
 		container: {
 			center: true,
-			padding: '2rem',
+			padding: '1rem',
 			screens: {
-				'2xl': '1400px'
+				'sm': '640px',
+				'md': '768px',
+				'lg': '1024px',
+				'xl': '1280px',
+				'2xl': '1536px',
 			}
 		},
 		extend: {
@@ -61,6 +66,17 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				iwanyu: {
+					primary: '#FF9900',
+					secondary: '#146EB4',
+					dark: '#131921',
+					light: '#232F3E',
+					background: '#FFFFFF',
+					foreground: '#111111',
+					muted: '#F5F5F5',
+					hover: '#F7F8F9',
+					border: '#E5E5E5'
 				}
 			},
 			borderRadius: {
@@ -84,11 +100,59 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fade-in': {
+					from: {
+						opacity: '0'
+					},
+					to: {
+						opacity: '1'
+					}
+				},
+				'fade-up': {
+					from: {
+						opacity: '0',
+						transform: 'translateY(10px)'
+					},
+					to: {
+						opacity: '1',
+						transform: 'translateY(0)'
+					}
+				},
+				'slide-in-right': {
+					from: {
+						transform: 'translateX(100%)'
+					},
+					to: {
+						transform: 'translateX(0)'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.3s ease-out',
+				'fade-up': 'fade-up 0.4s ease-out',
+				'slide-in-right': 'slide-in-right 0.3s ease-out'
+			},
+			fontFamily: {
+				sans: ['Inter', 'sans-serif'],
+				heading: ['Inter', 'sans-serif']
+			},
+			boxShadow: {
+				'product': '0 4px 20px rgba(0, 0, 0, 0.05)',
+				'hover': '0 6px 24px rgba(0, 0, 0, 0.08)',
+				'subtle': '0 2px 10px rgba(0, 0, 0, 0.03)'
+			},
+			transitionProperty: {
+				'height': 'height',
+				'spacing': 'margin, padding',
+			},
+			transitionDuration: {
+				'400': '400ms',
+			},
+			transitionTimingFunction: {
+				'bounce-in': 'cubic-bezier(0.5, 0, 0.3, 1.5)',
 			}
 		}
 	},
