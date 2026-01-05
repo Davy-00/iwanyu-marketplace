@@ -11,7 +11,7 @@ import { slugifyCategory } from "@/lib/categories";
 const Index = () => {
   const { products } = useMarketplace();
 
-  // Group products by category
+  // Group products by category - SHOW ALL CATEGORIES even if empty
   const productsByCategory = CATEGORIES.map(category => {
     const categoryProducts = products.filter(
       product => product.category.toLowerCase() === category.name.toLowerCase()
@@ -20,7 +20,7 @@ const Index = () => {
       category,
       products: categoryProducts
     };
-  }).filter(group => group.products.length > 0); // Only show categories that have products
+  }); // Show all categories including empty ones
 
   return (
     <div className="flex min-h-screen flex-col bg-white">

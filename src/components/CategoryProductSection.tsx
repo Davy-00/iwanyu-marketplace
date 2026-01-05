@@ -28,15 +28,19 @@ export const CategoryProductSection = ({
     }
   };
 
-  if (products.length === 0) return null;
+  // Show category even if no products - with a message
+  const isEmpty = products.length === 0;
 
   return (
     <section className="py-6 sm:py-8">
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-iwanyu-foreground sm:text-2xl">{categoryName}</h2>
+          <h2 className="text-xl font-bold text-iwanyu-foreground sm:text-2xl">
+            {categoryName}
+            {!isEmpty && <span className="ml-2 text-sm font-normal text-gray-500">({products.length} products)</span>}
+          </h2>
           <div className="flex items-center gap-2">
-            {viewAllLink && (
+            {viewAllLink && !isEmpty && (
               <Link
                 to={viewAllLink}
                 className="flex items-center text-sm font-medium text-iwanyu-primary hover:underline"
@@ -48,40 +52,46 @@ export const CategoryProductSection = ({
           </div>
         </div>
 
-        <div className="relative group">
-          {/* Left scroll button */}
-          <button
-            onClick={() => scroll('left')}
-            className="absolute left-0 top-1/2 z-10 -translate-y-1/2 bg-white/90 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white disabled:opacity-0"
-            aria-label="Scroll left"
-          >
-            <ChevronLeft size={24} className="text-iwanyu-foreground" />
-          </button>
-
-          {/* Product grid with horizontal scroll - 5 columns */}
-          <div
-            ref={scrollContainerRef}
-            className="overflow-x-auto scrollbar-hide scroll-smooth pb-2"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            <div className="inline-flex gap-4">
-              {products.map((product) => (
-                <div key={product.id} className="w-[calc(20%-12.8px)] min-w-[180px] sm:min-w-[200px] lg:min-w-[220px] flex-shrink-0">
-                  <ProductCard product={product} />
-                </div>
-              ))}
-            </div>
+        {isEmpty ? (
+          <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
+            <p className="text-sm text-gray-500">No products in this category yet. Check back soon!</p>
           </div>
+        ) : (
+          <div className="relative group">
+            {/* Left scroll button */}
+            <button
+              onClick={() => scroll('left')}
+              className="absolute left-0 top-1/2 z-10 -translate-y-1/2 bg-white/90 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white disabled:opacity-0"
+              aria-label="Scroll left"
+            >
+              <ChevronLeft size={24} className="text-iwanyu-foreground" />
+            </button>
 
-          {/* Right scroll button */}
-          <button
-            onClick={() => scroll('right')}
-            className="absolute right-0 top-1/2 z-10 -translate-y-1/2 bg-white/90 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white disabled:opacity-0"
-            aria-label="Scroll right"
-          >
-            <ChevronRight size={24} className="text-iwanyu-foreground" />
-          </button>
-        </div>
+            {/* Product grid with horizontal scroll - 5 columns */}
+            <div
+              ref={scrollContainerRef}
+              className="overflow-x-auto scrollbar-hide scroll-smooth pb-2"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              <div className="inline-flex gap-4">
+                {products.map((product) => (
+                  <div key={product.id} className="w-[calc(20%-12.8px)] min-w-[180px] sm:min-w-[200px] lg:min-w-[220px] flex-shrink-0">
+                    <ProductCard product={product} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right scroll button */}
+            <button
+              onClick={() => scroll('right')}
+              className="absolute right-0 top-1/2 z-10 -translate-y-1/2 bg-white/90 p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white disabled:opacity-0"
+              aria-label="Scroll right"
+            >
+              <ChevronRight size={24} className="text-iwanyu-foreground" />
+            </button>
+          </div>
+        )}
       </div>
 
       <style>{`
