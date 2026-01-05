@@ -50,7 +50,7 @@ export const Header = () => {
     <header className="sticky top-0 z-50 w-full shadow-lg">
       {/* Top Banner */}
       <div className="bg-gradient-to-r from-iwanyu-primary via-iwanyu-primary-glow to-iwanyu-primary py-2">
-        <div className="container mx-auto px-4">
+        <div className="w-full px-4">
           <div className="flex items-center justify-center gap-2 text-iwanyu-dark">
             <Sparkles size={14} className="animate-pulse" />
             <p className="text-sm font-semibold tracking-tight">
@@ -63,26 +63,20 @@ export const Header = () => {
 
       {/* Main Header */}
       <div className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4 py-4">
+        <div className="w-full px-4 py-4">
           <div className="flex items-center gap-6 lg:gap-8">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 shrink-0 group">
-              <div className="relative">
-                <div className="flex items-center gap-1">
-                  <span className="text-3xl font-black tracking-tight bg-gradient-to-r from-iwanyu-primary via-orange-500 to-iwanyu-primary-glow bg-clip-text text-transparent">
-                    iwanyu
-                  </span>
-                  <div className="flex flex-col">
-                    <span className="text-xs font-light text-gray-500 -mb-1">market</span>
-                    <span className="text-xs font-light text-gray-500">place</span>
-                  </div>
-                </div>
-                <div className="absolute -bottom-1 left-0 w-0 h-1 bg-gradient-to-r from-iwanyu-primary to-iwanyu-primary-glow transition-all duration-300 group-hover:w-full rounded-full" />
-              </div>
+              <img
+                src="/logo.png"
+                alt="iwanyu"
+                className="h-20 w-auto md:h-24"
+                loading="eager"
+              />
             </Link>
-
+            
             {/* Search Bar */}
-            <div className="hidden md:flex flex-1 max-w-2xl">
+            <div className="hidden md:flex flex-1">
               <form onSubmit={handleSearchSubmit} className="w-full relative group">
                 <div className="relative">
                   <Search 
@@ -107,7 +101,7 @@ export const Header = () => {
             </div>
 
             {/* Desktop Nav Items */}
-            <div className="hidden md:flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-2 ml-auto">
               {user ? (
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-all">
                   {user.picture ? (
@@ -223,7 +217,7 @@ export const Header = () => {
 
       {/* Secondary Nav */}
       <nav className="bg-gray-50 border-b border-gray-200">
-        <div className="container mx-auto hidden px-4 md:block">
+        <div className="w-full hidden px-4 md:block">
           <ul className="flex items-center gap-1 text-sm py-2 overflow-x-auto">
             <li>
               <button className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-700 hover:text-gray-900 hover:bg-white transition-all font-medium shadow-sm hover:shadow">

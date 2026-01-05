@@ -91,8 +91,12 @@ export const Footer = () => {
           {/* Social links & branding */}
           <div className="mt-12 flex flex-col items-center">
             <Link to="/" className="mb-6 flex items-center">
-              <span className="text-2xl font-bold text-iwanyu-primary">iwanyu</span>
-              <span className="text-xl font-medium text-iwanyu-foreground">store</span>
+              <img
+                src="/logo.png"
+                alt="iwanyu"
+                className="h-12 w-auto md:h-14"
+                loading="lazy"
+              />
             </Link>
             
             <div className="mb-6 flex space-x-4">

@@ -20,7 +20,7 @@ export default function SellerNewProductPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
-  const { vendors, createVendor, upsertProduct, getVendorsForOwner } = useMarketplace();
+  const { vendors, products, createVendor, upsertProduct, getVendorsForOwner } = useMarketplace();
 
   const supabase = getSupabaseClient();
 
@@ -39,16 +39,38 @@ export default function SellerNewProductPage() {
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("General");
+  const [category, setCategory] = useState("");
   const [price, setPrice] = useState("0");
   const [discountPercentage, setDiscountPercentage] = useState("0");
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [inStock, setInStock] = useState(true);
   const [uploading, setUploading] = useState(false);
 
+  const categoryOptions = useMemo(() => {
+    const byKey = new Map<string, string>();
+    for (const p of products) {
+      const raw = String(p.category ?? "").trim();
+      if (!raw) continue;
+      const key = raw.toLowerCase();
+      if (key === "general" || key === "uncategorized") continue;
+      if (!byKey.has(key)) byKey.set(key, raw);
+    }
+    return Array.from(byKey.values()).sort((a, b) => a.localeCompare(b));
+  }, [products]);
+
+  useEffect(() => {
+    if (!category && categoryOptions.length > 0) setCategory(categoryOptions[0]);
+  }, [category, categoryOptions]);
+
   const canSubmit = useMemo(() => {
-    return title.trim().length >= 3 && Number(price) > 0 && (vendorId || vendorName.trim().length >= 2);
-  }, [title, price, vendorId, vendorName]);
+    return (
+      title.trim().length >= 3 &&
+      Number(price) > 0 &&
+      category.trim().length > 0 &&
+      categoryOptions.length > 0 &&
+      (vendorId || vendorName.trim().length >= 2)
+    );
+  }, [title, price, vendorId, vendorName, category, categoryOptions.length]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -134,7 +156,24 @@ export default function SellerNewProductPage() {
             <div className="grid gap-3 md:grid-cols-3">
               <div>
                 <div className="text-sm font-medium text-gray-700">Category</div>
-                <Input className="mt-1" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g. Electronics" />
+                {categoryOptions.length === 0 ? (
+                  <div className="mt-1 rounded-md border border-iwanyu-border bg-white p-3 text-xs text-gray-600">
+                    No categories available yet. Ask admin to categorize products first.
+                  </div>
+                ) : (
+                  <Select value={category} onValueChange={(v) => setCategory(v)}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categoryOptions.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {c}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
               <div>
                 <div className="text-sm font-medium text-gray-700">Price</div>
@@ -226,6 +265,8 @@ export default function SellerNewProductPage() {
                   try {
                     if (!supabase) throw new Error("Supabase is not configured");
                     if (!user) throw new Error("Not signed in");
+                    if (categoryOptions.length === 0) throw new Error("No categories available yet");
+                    if (!category.trim()) throw new Error("Please select a category");
 
                     let resolvedVendorId = vendorId;
                     if (!resolvedVendorId && vendorName.trim().length >= 2) {
@@ -263,7 +304,7 @@ export default function SellerNewProductPage() {
                       vendorId: resolvedVendorId,
                       title: title.trim(),
                       description: description.trim() || "",
-                      category: category.trim() || "General",
+                      category: category.trim(),
                       price: Number(price),
                       rating: 0,
                       reviewCount: 0,

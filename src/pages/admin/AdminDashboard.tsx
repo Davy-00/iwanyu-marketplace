@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -53,6 +54,29 @@ export default function AdminDashboardPage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteProductId, setDeleteProductId] = useState<string | null>(null);
   const [deleteReason, setDeleteReason] = useState("");
+
+  const categoryOptions = useMemo(() => {
+    const byKey = new Map<string, string>();
+    for (const p of products) {
+      const raw = String(p.category ?? "").trim();
+      if (!raw) continue;
+      const key = raw.toLowerCase();
+      if (key === "general" || key === "uncategorized") continue;
+      if (!byKey.has(key)) byKey.set(key, raw);
+    }
+    return Array.from(byKey.values()).sort((a, b) => a.localeCompare(b));
+  }, [products]);
+
+  const [categoryEdits, setCategoryEdits] = useState<Record<string, string>>({});
+
+  async function updateProductCategory(productId: string, category: string) {
+    if (!supabase) throw new Error("Supabase is not configured");
+    const next = category.trim();
+    if (!next) throw new Error("Missing category");
+    const { error } = await supabase.from("products").update({ category: next }).eq("id", productId);
+    if (error) throw new Error(error.message);
+    await refresh();
+  }
 
   const productToDelete = useMemo(
     () => (deleteProductId ? products.find((p) => p.id === deleteProductId) : undefined),
@@ -281,12 +305,65 @@ export default function AdminDashboardPage() {
                 <div className="space-y-3">
                   {products.slice(0, 50).map((p) => {
                     const vendor = vendors.find((v) => v.id === p.vendorId);
+                    const selected = categoryEdits[p.id] ?? String(p.category ?? "").trim();
                     return (
                       <div key={p.id} className="rounded-lg border border-iwanyu-border bg-white p-4">
                         <div className="font-semibold text-gray-900">{p.title}</div>
                         <div className="mt-1 text-xs text-gray-600">
                           Vendor: {vendor?.name ?? "Unknown"} • Price: {formatMoney(p.price)} • Stock: {p.inStock ? "In" : "Out"}
                         </div>
+                        <div className="mt-3 grid gap-2 md:grid-cols-[1fr_auto] md:items-center">
+                          <div>
+                            <div className="text-xs font-medium text-gray-700">Category</div>
+                            {categoryOptions.length === 0 ? (
+                              <div className="mt-1 text-xs text-gray-500">No categories yet.</div>
+                            ) : (
+                              <Select
+                                value={selected}
+                                onValueChange={(v) =>
+                                  setCategoryEdits((prev) => ({
+                                    ...prev,
+                                    [p.id]: v,
+                                  }))
+                                }
+                              >
+                                <SelectTrigger className="mt-1">
+                                  <SelectValue placeholder="Select category" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {categoryOptions.map((c) => (
+                                    <SelectItem key={c} value={c}>
+                                      {c}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                          </div>
+
+                          <div className="flex gap-2 md:justify-end">
+                            <Button
+                              variant="outline"
+                              className="rounded-full"
+                              disabled={categoryOptions.length === 0 || !selected || selected === String(p.category ?? "").trim()}
+                              onClick={async () => {
+                                try {
+                                  await updateProductCategory(p.id, selected);
+                                  toast({ title: "Updated", description: "Category saved." });
+                                } catch (e) {
+                                  toast({
+                                    title: "Update failed",
+                                    description: e instanceof Error ? e.message : "Unknown error",
+                                    variant: "destructive",
+                                  });
+                                }
+                              }}
+                            >
+                              Save category
+                            </Button>
+                          </div>
+                        </div>
+
                         <div className="mt-3 flex flex-wrap gap-2">
                           <Link to={`/product/${p.id}`}>
                             <Button variant="outline" className="rounded-full">View</Button>
