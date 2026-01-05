@@ -68,15 +68,16 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				iwanyu: {
-					primary: '#FF9900',
-					secondary: '#146EB4',
-					dark: '#131921',
-					light: '#232F3E',
-					background: '#FFFFFF',
-					foreground: '#111111',
-					muted: '#F5F5F5',
-					hover: '#F7F8F9',
-					border: '#E5E5E5'
+					primary: 'hsl(36 100% 50%)',
+					'primary-glow': 'hsl(36 100% 60%)',
+					secondary: 'hsl(207 80% 40%)',
+					dark: 'hsl(213 33% 10%)',
+					light: 'hsl(213 30% 18%)',
+					background: 'hsl(0 0% 100%)',
+					foreground: 'hsl(0 0% 7%)',
+					muted: 'hsl(0 0% 96%)',
+					hover: 'hsl(210 20% 97%)',
+					border: 'hsl(0 0% 90%)'
 				}
 			},
 			borderRadius: {
