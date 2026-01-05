@@ -12,6 +12,9 @@ const Index = () => {
   const { products } = useMarketplace();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
+  // Debug: Log products
+  console.log('Products loaded:', products.length, products.slice(0, 3));
+
   // Filter products by selected category
   const filteredProducts = selectedCategory === "all" 
     ? products

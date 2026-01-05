@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Menu, Search, ShoppingCart, User, X, ChevronDown, Heart, Package, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ export const Header = () => {
   const { itemCount } = useCart();
   const { user, signOut } = useAuth();
   const { products } = useMarketplace();
+  const navigate = useNavigate();
 
   const categories = useMemo(() => {
     return getNavCategoriesWithCounts(products).map(({ id, name }) => ({ id, name }));
@@ -29,7 +30,9 @@ export const Header = () => {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Search for:', searchQuery);
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
   };
 
   return (
