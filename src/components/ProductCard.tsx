@@ -5,6 +5,11 @@ import { Heart, Star, ShoppingCart, Check } from 'lucide-react';
 import { Product } from '@/types/product';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { useCart } from '@/context/cart';
+import { useMarketplace } from '@/context/marketplace';
+import { formatMoney } from '@/lib/money';
+import { Badge } from '@/components/ui/badge';
+import { getOptimizedCloudinaryUrl } from '@/lib/cloudinary';
 
 interface ProductCardProps {
   product: Product;
@@ -14,27 +19,29 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const { toast } = useToast();
+  const { addItem } = useCart();
+  const { getVendorById } = useMarketplace();
 
   const {
     id,
+    vendorId,
     title,
     price,
     rating,
     reviewCount,
+    category,
     image,
-    badges,
+    discountPercentage,
     inStock,
-    freeShipping,
-    discountPercentage
+    freeShipping
   } = product;
 
-  const originalPrice = discountPercentage
-    ? (price / (1 - discountPercentage / 100)).toFixed(2)
-    : null;
+  const vendorName = vendorId ? getVendorById(vendorId)?.name : undefined;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    addItem({ productId: id, title, price, image });
     toast({
       title: "Added to cart",
       description: `${title} has been added to your cart.`,
@@ -61,26 +68,22 @@ export const ProductCard = ({ product }: ProductCardProps) => {
       <div className="relative overflow-hidden rounded-lg border border-iwanyu-border bg-white shadow-product transition-all duration-300 hover:shadow-hover hover:-translate-y-1">
         {/* Product Image */}
         <div className="relative aspect-square overflow-hidden bg-iwanyu-muted p-4">
-          <img
-            src={image}
-            alt={title}
-            className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
-          />
-          
-          {/* Badges */}
-          {badges && badges.length > 0 && (
-            <div className="absolute left-2 top-2 flex flex-col gap-1">
-              {badges.map((badge) => (
-                <span
-                  key={badge}
-                  className="rounded bg-iwanyu-primary px-2 py-1 text-xs font-medium text-white shadow-sm"
-                >
-                  {badge}
-                </span>
-              ))}
-            </div>
+          {image ? (
+            <img
+              src={getOptimizedCloudinaryUrl(image, { kind: "image", width: 600 })}
+              alt={title}
+              className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
+              loading="lazy"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-xs text-gray-500">No image</div>
           )}
+
+          {typeof discountPercentage === "number" && discountPercentage > 0 ? (
+            <div className="absolute left-2 top-2">
+              <Badge>{discountPercentage}% off</Badge>
+            </div>
+          ) : null}
           
           {/* Favorite Button */}
           <button
@@ -117,6 +120,14 @@ export const ProductCard = ({ product }: ProductCardProps) => {
           <h3 className="mb-1 text-sm font-medium text-iwanyu-foreground line-clamp-2">
             {title}
           </h3>
+
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            {category ? <Badge variant="secondary">{category}</Badge> : null}
+          </div>
+
+          {vendorName ? (
+            <div className="mb-2 text-xs text-gray-500">Sold by {vendorName}</div>
+          ) : null}
           
           {/* Rating */}
           <div className="mb-2 flex items-center">
@@ -136,18 +147,8 @@ export const ProductCard = ({ product }: ProductCardProps) => {
           {/* Price */}
           <div className="flex items-baseline gap-2">
             <span className="text-lg font-semibold text-iwanyu-foreground">
-              ${price.toFixed(2)}
+              {formatMoney(price)}
             </span>
-            {originalPrice && (
-              <span className="text-sm text-gray-500 line-through">
-                ${originalPrice}
-              </span>
-            )}
-            {discountPercentage && (
-              <span className="text-xs text-green-600">
-                {discountPercentage}% off
-              </span>
-            )}
           </div>
           
           {/* Free Shipping */}

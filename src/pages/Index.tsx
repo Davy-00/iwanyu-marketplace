@@ -18,7 +18,6 @@ const Index = () => {
         <FeaturedProducts 
           title="Today's Deals" 
           subtitle="Limited time offers on top products"
-          productIds={['1', '3', '6', '7']}
           viewAllLink="/deals"
         />
         

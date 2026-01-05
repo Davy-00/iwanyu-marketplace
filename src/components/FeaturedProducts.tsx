@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { ProductCard } from '@/components/ProductCard';
-import { products } from '@/data/products';
+import { useMarketplace } from '@/context/marketplace';
 
 interface FeaturedProductsProps {
   title: string;
@@ -22,6 +22,7 @@ export const FeaturedProducts = ({
   viewAllLink = '/products',
   maxProducts = 4
 }: FeaturedProductsProps) => {
+  const { products } = useMarketplace();
   let displayProducts = [...products];
   
   // Filter by product IDs if provided

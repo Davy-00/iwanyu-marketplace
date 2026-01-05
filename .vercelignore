@@ -1,0 +1,13 @@
+# Never upload local env files
+.env
+.env.*
+
+# Local Supabase dev artifacts
+supabase/.temp
+supabase/.branches
+
+# Node + build outputs
+node_modules
+
+# Local Vercel metadata
+.vercel

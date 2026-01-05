@@ -12,6 +12,17 @@ dist
 dist-ssr
 *.local
 
+# Env files (secrets)
+.env
+.env.*
+
+# Supabase local dev
+supabase/.temp
+supabase/.branches
+
+# Local scratch
+pass
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -22,3 +33,5 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.vercel
+.env*.local

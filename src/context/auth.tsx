@@ -1,0 +1,148 @@
+/* eslint-disable react-refresh/only-export-components */
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import type { AuthRole } from "@/types/auth";
+import { getSupabaseClient } from "@/lib/supabaseClient";
+
+export type AuthUser = {
+  id: string;
+  name?: string;
+  email?: string;
+  picture?: string;
+  role?: AuthRole;
+};
+
+type AuthContextValue = {
+  user: AuthUser | null;
+  isReady: boolean;
+  signOut: () => Promise<void>;
+  setRole: (role: AuthRole) => Promise<void>;
+};
+
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+type DbProfile = {
+  role: AuthRole;
+  full_name: string | null;
+  avatar_url: string | null;
+};
+
+async function loadProfileRole(supabase: ReturnType<typeof getSupabaseClient>, userId: string) {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("role, full_name, avatar_url")
+    .eq("id", userId)
+    .maybeSingle();
+  if (error) return null;
+  return (data ?? null) as DbProfile | null;
+}
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUserState] = useState<AuthUser | null>(null);
+  const [isReady, setIsReady] = useState(false);
+
+  const supabase = getSupabaseClient();
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function init() {
+      if (!supabase) {
+        if (!cancelled) setIsReady(true);
+        return;
+      }
+
+      const { data } = await supabase.auth.getSession();
+      const s = data.session;
+      if (s?.user) {
+        const profile = await loadProfileRole(supabase, s.user.id);
+
+        const next: AuthUser = {
+          id: s.user.id,
+          email: s.user.email ?? undefined,
+          name:
+            profile?.full_name ??
+            (s.user.user_metadata as { full_name?: string; name?: string } | null)?.full_name ??
+            (s.user.user_metadata as { full_name?: string; name?: string } | null)?.name,
+          picture:
+            profile?.avatar_url ??
+            (s.user.user_metadata as { avatar_url?: string; picture?: string } | null)?.avatar_url ??
+            (s.user.user_metadata as { avatar_url?: string; picture?: string } | null)?.picture,
+          role: profile?.role ?? "buyer",
+        };
+        setUserState(next);
+      } else {
+        setUserState(null);
+      }
+
+      if (!cancelled) setIsReady(true);
+    }
+
+    void init();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase]);
+
+  useEffect(() => {
+    if (!supabase) return;
+    const { data } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        const profile = await loadProfileRole(supabase, session.user.id);
+
+        const next: AuthUser = {
+          id: session.user.id,
+          email: session.user.email ?? undefined,
+          name:
+            profile?.full_name ??
+            (session.user.user_metadata as { full_name?: string; name?: string } | null)?.full_name ??
+            (session.user.user_metadata as { full_name?: string; name?: string } | null)?.name,
+          picture:
+            profile?.avatar_url ??
+            (session.user.user_metadata as { avatar_url?: string; picture?: string } | null)?.avatar_url ??
+            (session.user.user_metadata as { avatar_url?: string; picture?: string } | null)?.picture,
+          role: profile?.role ?? "buyer",
+        };
+        setUserState(next);
+      } else {
+        setUserState(null);
+      }
+    });
+
+    return () => {
+      data.subscription.unsubscribe();
+    };
+  }, [supabase]);
+
+  const value: AuthContextValue = useMemo(
+    () => ({
+      user,
+      isReady,
+      signOut: async () => {
+        if (!supabase) {
+          setUserState(null);
+          return;
+        }
+        await supabase.auth.signOut();
+        setUserState(null);
+      },
+      setRole: async (role) => {
+        if (!supabase) throw new Error("Supabase is not configured");
+        if (!user) throw new Error("Not signed in");
+        const { error } = await supabase.from("profiles").update({ role }).eq("id", user.id);
+        if (error) throw new Error(error.message);
+        setUserState((prev) => (prev ? { ...prev, role } : prev));
+      },
+    }),
+    [user, isReady, supabase]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
+}
