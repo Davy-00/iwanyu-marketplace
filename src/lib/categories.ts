@@ -7,15 +7,16 @@ export type CategoryDef = {
 const INVALID_CATEGORY_KEYS = new Set(["", "general", "uncategorized", "none", "null", "n/a"]);
 
 export const CATEGORIES: CategoryDef[] = [
-  { id: "electronics", name: "Electronics", keywords: ["electronics", "electronic", "gadget", "gadgets"] },
+  { id: "electronics", name: "Electronics", keywords: ["electronics", "electronic", "gadget", "gadgets", "cameras", "optics", "camera"] },
   { id: "phones", name: "Phones", keywords: ["phone", "phones", "smartphone", "iphone", "android"] },
   { id: "computers", name: "Computers", keywords: ["computer", "computers", "pc", "desktop"] },
   { id: "laptops", name: "Laptops", keywords: ["laptop", "laptops", "notebook", "macbook"] },
   { id: "kitchen", name: "Kitchen", keywords: ["kitchen", "cookware", "utensil", "utensils", "appliance", "appliances"] },
-  { id: "home", name: "Home", keywords: ["home", "decor", "bedding", "household"] },
-  { id: "fashion", name: "Fashion", keywords: ["fashion", "clothing", "apparel", "wear"] },
-  { id: "shoes", name: "Shoes", keywords: ["shoe", "shoes", "sneaker", "sneakers", "boot", "boots", "heels", "sandals"] },
+  { id: "home", name: "Home", keywords: ["home", "decor", "bedding", "household", "wallpaper", "wallpapers"] },
+  { id: "fashion", name: "Fashion", keywords: ["fashion", "clothing", "apparel", "wear", "dress", "dresses"] },
+  { id: "shoes", name: "Shoes", keywords: ["shoe", "shoes", "sneaker", "sneakers", "boot", "boots", "heels", "sandals", "adidas", "nike"] },
   { id: "bags", name: "Bags", keywords: ["bag", "bags", "backpack", "handbag", "purse"] },
+  { id: "jewelry", name: "Jewelry", keywords: ["jewelry", "jewellery", "necklace", "necklaces", "bracelet", "bracelets", "earring", "earrings", "ring", "rings"] },
   { id: "beauty", name: "Beauty", keywords: ["beauty", "cosmetic", "cosmetics", "makeup", "skincare"] },
   { id: "health", name: "Health", keywords: ["health", "wellness", "supplement", "supplements"] },
   { id: "sports", name: "Sports", keywords: ["sport", "sports", "fitness", "gym"] },
