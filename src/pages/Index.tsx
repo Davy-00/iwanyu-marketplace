@@ -5,17 +5,18 @@ import { CategoryNav } from "@/components/CategoryNav";
 import { CategoryProductSection } from "@/components/CategoryProductSection";
 import { Footer } from "@/components/Footer";
 import { useMarketplace } from "@/context/marketplace";
-import { CATEGORIES } from "@/lib/categories";
-import { slugifyCategory } from "@/lib/categories";
+import { CATEGORIES, slugifyCategory, normalizeCategoryName } from "@/lib/categories";
 
 const Index = () => {
   const { products } = useMarketplace();
 
   // Group products by category - SHOW ALL CATEGORIES even if empty
+  // Use normalizeCategoryName to match products with various category names
   const productsByCategory = CATEGORIES.map(category => {
-    const categoryProducts = products.filter(
-      product => product.category.toLowerCase() === category.name.toLowerCase()
-    );
+    const categoryProducts = products.filter(product => {
+      const normalizedProductCategory = normalizeCategoryName(product.category);
+      return normalizedProductCategory === category.name;
+    });
     return {
       category,
       products: categoryProducts
