@@ -160,13 +160,13 @@ export default function CheckoutPage() {
                         };
                       });
 
-                      if (!supabase || !flutterwavePublicKey) {
-                        throw new Error("Checkout is not configured. Missing Supabase/Flutterwave environment variables.");
-                      }
-
                       if (!user) {
                         navigate("/login", { state: { from: location }, replace: false });
                         return;
+                      }
+
+                      if (!supabase || !flutterwavePublicKey) {
+                        throw new Error("Checkout is not configured. Missing Supabase/Flutterwave environment variables.");
                       }
 
                       const orderId = createId("ord");

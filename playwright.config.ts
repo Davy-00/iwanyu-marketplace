@@ -20,6 +20,10 @@ export default defineConfig({
     url: process.env.E2E_BASE_URL ?? `http://127.0.0.1:${port}`,
     reuseExistingServer: true,
     timeout: 120_000,
+    env: {
+      ...process.env,
+      VITE_E2E_DISABLE_SUPABASE: process.env.VITE_E2E_DISABLE_SUPABASE ?? "1",
+    },
   },
   projects: [
     {
