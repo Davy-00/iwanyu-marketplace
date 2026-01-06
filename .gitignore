@@ -39,3 +39,6 @@ pass
 *.sw?
 .vercel
 .env*.local
+
+# Local exports (CSV → images/JSON)
+export/
