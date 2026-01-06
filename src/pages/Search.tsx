@@ -7,14 +7,6 @@ import { useMarketplace } from "@/context/marketplace";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search as SearchIcon, Filter, SortAsc } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 const Search = () => {
   const [searchParams] = useSearchParams();
@@ -41,8 +33,7 @@ const Search = () => {
       product.title.toLowerCase().includes(word) ||
       product.description?.toLowerCase().includes(word) ||
       product.category?.toLowerCase().includes(word) ||
-      product.vendor?.toLowerCase().includes(word) ||
-      product.tags?.some(tag => tag.toLowerCase().includes(word))
+      product.badges?.some(badge => badge.toLowerCase().includes(word))
     );
     
     // Apply category filter
@@ -60,13 +51,12 @@ const Search = () => {
         return b.price - a.price;
       case "name":
         return a.title.localeCompare(b.title);
-      case "newest":
-        return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
-      default: // relevance
+      default: { // relevance
         if (!query.trim()) return 0;
         const aScore = a.title.toLowerCase().includes(query.toLowerCase()) ? 2 : 1;
         const bScore = b.title.toLowerCase().includes(query.toLowerCase()) ? 2 : 1;
         return bScore - aScore;
+      }
     }
   });
 
@@ -119,7 +109,6 @@ const Search = () => {
                     <SelectItem value="name">Name A-Z</SelectItem>
                     <SelectItem value="price-low">Price: Low to High</SelectItem>
                     <SelectItem value="price-high">Price: High to Low</SelectItem>
-                    <SelectItem value="newest">Newest First</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
