@@ -41,8 +41,8 @@ type DbProductRow = {
   category: string | null;
   price_rwf: number;
   image_url: string | null;
-  in_stock: boolean;
-  free_shipping: boolean;
+  in_stock: boolean | null;
+  free_shipping: boolean | null;
   rating: number;
   review_count: number;
   discount_percentage?: number | null;
@@ -113,8 +113,8 @@ export function MarketplaceProvider({ children }: { children: React.ReactNode })
         category: normalizeCategoryName(p.category),
         price: Number(p.price_rwf ?? 0),
         image: p.image_url ?? "",
-        inStock: Boolean(p.in_stock),
-        freeShipping: Boolean(p.free_shipping),
+        inStock: Boolean(p.in_stock ?? true),
+        freeShipping: Boolean(p.free_shipping ?? false),
         rating: Number(p.rating ?? 0),
         reviewCount: Number(p.review_count ?? 0),
         discountPercentage: Math.max(0, Math.min(100, Number(p.discount_percentage ?? 0))),

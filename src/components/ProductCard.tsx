@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useCart } from '@/context/cart';
 import { useMarketplace } from '@/context/marketplace';
+import { useWishlist } from '@/context/wishlist';
 import { formatMoney } from '@/lib/money';
 import { Badge } from '@/components/ui/badge';
 import { getOptimizedCloudinaryUrl } from '@/lib/cloudinary';
@@ -17,10 +18,10 @@ interface ProductCardProps {
 
 export const ProductCard = ({ product }: ProductCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
   const { toast } = useToast();
   const { addItem } = useCart();
   const { getVendorById } = useMarketplace();
+  const { contains, toggle } = useWishlist();
 
   const {
     id,
@@ -37,6 +38,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   } = product;
 
   const vendorName = vendorId ? getVendorById(vendorId)?.name : undefined;
+  const isFavorite = contains(id);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -48,14 +50,22 @@ export const ProductCard = ({ product }: ProductCardProps) => {
     });
   };
 
-  const handleToggleFavorite = (e: React.MouseEvent) => {
+  const handleToggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsFavorite(!isFavorite);
-    toast({
-      title: isFavorite ? "Removed from wishlist" : "Added to wishlist",
-      description: `${title} has been ${isFavorite ? "removed from" : "added to"} your wishlist.`,
-    });
+    try {
+      const result = await toggle(id);
+      toast({
+        title: result.added ? "Added to wishlist" : "Removed from wishlist",
+        description: `${title} has been ${result.added ? "added to" : "removed from"} your wishlist.`,
+      });
+    } catch {
+      toast({
+        title: "Wishlist update failed",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -67,10 +77,10 @@ export const ProductCard = ({ product }: ProductCardProps) => {
     >
       <div className="relative overflow-hidden rounded-2xl border border-iwanyu-border/60 bg-white shadow-lg transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 hover:border-iwanyu-primary/20">
         {/* Product Image */}
-        <div className="relative aspect-[3/4] overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
           {image ? (
             <img
-              src={getOptimizedCloudinaryUrl(image, { kind: "image", width: 800, quality: 85 })}
+              src={getOptimizedCloudinaryUrl(image, { kind: "image", width: 600, quality: 85 })}
               alt={title}
               className="absolute inset-0 h-full w-full object-contain transition-all duration-700 group-hover:scale-105"
               loading="lazy"

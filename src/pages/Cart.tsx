@@ -1,13 +1,44 @@
 import { Link, useNavigate } from "react-router-dom";
+import { useMemo } from "react";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import StorefrontPage from "@/components/StorefrontPage";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/cart";
 import { formatMoney } from "@/lib/money";
+import { useMarketplace } from "@/context/marketplace";
+import { ProductCard } from "@/components/ProductCard";
 
 export default function CartPage() {
   const navigate = useNavigate();
   const { items, itemCount, subtotal, removeItem, setQuantity, clear } = useCart();
+  const { products } = useMarketplace();
+
+  const recommended = useMemo(() => {
+    if (items.length === 0) return [];
+
+    const inCart = new Set(items.map((i) => i.productId));
+    const categoryCounts = new Map<string, number>();
+
+    for (const item of items) {
+      const product = products.find((p) => p.id === item.productId);
+      const category = product?.category;
+      if (!category) continue;
+      categoryCounts.set(category, (categoryCounts.get(category) ?? 0) + 1);
+    }
+
+    return products
+      .filter((p) => !inCart.has(p.id))
+      .slice()
+      .sort((a, b) => {
+        const aCat = categoryCounts.get(a.category ?? "") ?? 0;
+        const bCat = categoryCounts.get(b.category ?? "") ?? 0;
+        if (bCat !== aCat) return bCat - aCat;
+        const byRating = (b.rating ?? 0) - (a.rating ?? 0);
+        if (byRating !== 0) return byRating;
+        return (b.reviewCount ?? 0) - (a.reviewCount ?? 0);
+      })
+      .slice(0, 12);
+  }, [items, products]);
 
   return (
     <StorefrontPage>
@@ -133,6 +164,23 @@ export default function CartPage() {
             </div>
           </div>
         )}
+
+        {items.length > 0 ? (
+          <div className="mt-16">
+            <h2 className="text-3xl font-bold text-iwanyu-foreground mb-8">Recommended Products</h2>
+            {recommended.length === 0 ? (
+              <div className="rounded-2xl border border-iwanyu-border bg-white p-6 text-gray-600">
+                No recommendations available right now.
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                {recommended.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            )}
+          </div>
+        ) : null}
       </div>
     </StorefrontPage>
   );

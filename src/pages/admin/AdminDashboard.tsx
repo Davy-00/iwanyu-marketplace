@@ -49,6 +49,48 @@ export default function AdminDashboardPage() {
   const supabase = getSupabaseClient();
   const { products, vendors, refresh } = useMarketplace();
 
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="container py-10">
+          <div className="rounded-lg border border-iwanyu-border bg-white p-6">
+            <div className="text-lg font-semibold text-gray-900">Sign in required</div>
+            <div className="mt-1 text-sm text-gray-600">You must be signed in to access the admin dashboard.</div>
+            <div className="mt-4 flex gap-3">
+              <Link to="/login">
+                <Button className="rounded-full bg-iwanyu-primary text-white hover:bg-iwanyu-primary/90">Go to login</Button>
+              </Link>
+              <Link to="/">
+                <Button variant="outline" className="rounded-full">Storefront</Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (user.role !== "admin") {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="container py-10">
+          <div className="rounded-lg border border-iwanyu-border bg-white p-6">
+            <div className="text-lg font-semibold text-gray-900">Access denied</div>
+            <div className="mt-1 text-sm text-gray-600">Admin role is required to view this page.</div>
+            <div className="mt-4 flex gap-3">
+              <Link to="/account">
+                <Button className="rounded-full bg-iwanyu-primary text-white hover:bg-iwanyu-primary/90">Go to account</Button>
+              </Link>
+              <Link to="/">
+                <Button variant="outline" className="rounded-full">Storefront</Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const [applications, setApplications] = useState<VendorApplication[]>([]);
   const [loadingApps, setLoadingApps] = useState(false);
 
@@ -211,8 +253,8 @@ export default function AdminDashboardPage() {
                 <CardTitle className="text-sm">Active vendors</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">0</div>
-                <div className="text-xs text-gray-600">Metrics</div>
+                <div className="text-2xl font-bold text-gray-900">{vendors.length}</div>
+                <div className="text-xs text-gray-600">Total vendors</div>
               </CardContent>
             </Card>
             <Card>
@@ -221,7 +263,7 @@ export default function AdminDashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-gray-900">0</div>
-                <div className="text-xs text-gray-600">Metrics</div>
+                <div className="text-xs text-gray-600">Not implemented</div>
               </CardContent>
             </Card>
             <Card>
@@ -230,7 +272,7 @@ export default function AdminDashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-gray-900">{formatMoney(0)}</div>
-                <div className="text-xs text-gray-600">Metrics</div>
+                <div className="text-xs text-gray-600">Not implemented</div>
               </CardContent>
             </Card>
           </div>

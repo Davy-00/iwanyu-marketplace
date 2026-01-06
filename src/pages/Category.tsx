@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import StorefrontPage from "@/components/StorefrontPage";
 import { ProductCard } from "@/components/ProductCard";
@@ -24,10 +25,24 @@ export default function CategoryPage() {
     return def?.name ?? titleFromSlug(categoryId);
   })();
 
-  const filtered = (() => {
+  const filtered = useMemo(() => {
     if (categoryId === "all") return products;
     return products.filter((p) => slugifyCategory(p.category) === categoryId);
-  })();
+  }, [categoryId, products]);
+
+  const recommended = useMemo(() => {
+    // For a category page, recommend products from other categories.
+    if (categoryId === "all") return [];
+    return products
+      .filter((p) => slugifyCategory(p.category) !== categoryId)
+      .slice()
+      .sort((a, b) => {
+        const byRating = (b.rating ?? 0) - (a.rating ?? 0);
+        if (byRating !== 0) return byRating;
+        return (b.reviewCount ?? 0) - (a.reviewCount ?? 0);
+      })
+      .slice(0, 12);
+  }, [categoryId, products]);
 
   return (
     <StorefrontPage>
@@ -59,6 +74,23 @@ export default function CategoryPage() {
             ))}
           </div>
         )}
+
+        {categoryId !== "all" ? (
+          <div className="mt-16">
+            <h2 className="text-3xl font-bold text-iwanyu-foreground mb-8">Recommended Products</h2>
+            {recommended.length === 0 ? (
+              <div className="rounded-2xl border border-iwanyu-border bg-white p-6 text-gray-600">
+                No recommendations available right now.
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                {recommended.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            )}
+          </div>
+        ) : null}
       </div>
     </StorefrontPage>
   );

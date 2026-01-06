@@ -93,7 +93,7 @@ export default function ProductPage() {
                   <img
                     src={getOptimizedCloudinaryUrl(firstImage, { kind: "image", width: 900 })}
                     alt={product.title}
-                    className="mx-auto h-96 w-96 object-contain lg:h-[500px] lg:w-[500px]"
+                    className="mx-auto h-80 w-80 object-contain lg:h-[420px] lg:w-[420px]"
                     loading="lazy"
                   />
                 );

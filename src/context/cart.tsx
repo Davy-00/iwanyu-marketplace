@@ -23,6 +23,8 @@ type CartContextValue = {
 
 const CartContext = createContext<CartContextValue | undefined>(undefined);
 
+const STORAGE_KEY = "iwanyu:cart";
+
 type DbCartRow = {
   buyer_user_id: string;
   items: unknown;
@@ -41,6 +43,25 @@ function normalizeItems(value: unknown): CartItem[] {
       image: String(x.image ?? ""),
       quantity: Math.max(1, Number(x.quantity ?? 1)),
     }));
+}
+
+function readLocalCart(): CartItem[] {
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    return normalizeItems(parsed);
+  } catch {
+    return [];
+  }
+}
+
+function writeLocalCart(items: CartItem[]) {
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  } catch {
+    // ignore
+  }
 }
 
 function mergeItems(local: CartItem[], remote: CartItem[]): CartItem[] {
@@ -69,14 +90,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false;
 
     async function load() {
-      if (!supabase || !user) {
-        setItems([]);
+      // Guest cart: keep items in localStorage.
+      if (!user || !supabase) {
         setHydratedForUserId(null);
+        setItems(readLocalCart());
         return;
       }
 
       const currentUserId = user.id;
       setHydratedForUserId(null);
+
+      const localItems = readLocalCart();
 
       const { data, error } = await supabase
         .from("carts")
@@ -87,12 +111,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (cancelled) return;
       if (error) {
         // If cart table isn't migrated yet or RLS blocks, don't break the app.
+        setItems(localItems);
         setHydratedForUserId(currentUserId);
         return;
       }
 
       const remoteItems = normalizeItems((data as DbCartRow | null)?.items);
-      setItems((prev) => mergeItems(prev, remoteItems));
+      setItems(mergeItems(localItems, remoteItems));
+      writeLocalCart([]);
       setHydratedForUserId(currentUserId);
     }
 
@@ -101,6 +127,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       cancelled = true;
     };
   }, [supabase, user]);
+
+  // Persist guest cart to localStorage.
+  useEffect(() => {
+    if (user) return;
+    writeLocalCart(items);
+  }, [items, user]);
 
   useEffect(() => {
     async function save() {

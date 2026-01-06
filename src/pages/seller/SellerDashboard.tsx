@@ -27,9 +27,16 @@ const nav = [
 
 export default function SellerDashboardPage() {
   const { user } = useAuth();
-  const { getVendorsForOwner } = useMarketplace();
+  const { getVendorsForOwner, products } = useMarketplace();
   const supabase = getSupabaseClient();
   const [notifications, setNotifications] = useState<VendorNotification[]>([]);
+
+  const [metrics, setMetrics] = useState<{ productCount: number; orderCount: number; salesRwf: number }>(
+    { productCount: 0, orderCount: 0, salesRwf: 0 }
+  );
+  const [metricsLoading, setMetricsLoading] = useState(false);
+
+  const isSellerOrAdmin = Boolean(user && (user.role === "seller" || user.role === "admin"));
 
   const ownedVendorIds = useMemo(() => {
     if (!user || user.role === "admin") return [];
@@ -70,6 +77,97 @@ export default function SellerDashboardPage() {
       cancelled = true;
     };
   }, [supabase, user, ownedVendorIds]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadMetrics() {
+      if (!supabase || !user) return;
+
+      // Admin dashboard has its own view; keep seller metrics focused.
+      if (user.role === "admin") {
+        setMetrics({
+          productCount: products.length,
+          orderCount: 0,
+          salesRwf: 0,
+        });
+        return;
+      }
+
+      if (ownedVendorIds.length === 0) {
+        setMetrics({ productCount: 0, orderCount: 0, salesRwf: 0 });
+        return;
+      }
+
+      setMetricsLoading(true);
+      try {
+        const ownedSet = new Set(ownedVendorIds);
+        const productCount = products.filter((p) => ownedSet.has(p.vendorId)).length;
+
+        // Best-effort order metrics from order_items.
+        const { data, error } = await supabase
+          .from("order_items")
+          .select("order_id, price_rwf, quantity, vendor_id")
+          .in("vendor_id", ownedVendorIds)
+          .limit(5000);
+
+        if (error) throw error;
+
+        const rows = (data ?? []) as Array<{ order_id: string; price_rwf: number; quantity: number; vendor_id: string }>;
+        const uniqueOrders = new Set(rows.map((r) => r.order_id));
+        const salesRwf = rows.reduce((sum, r) => sum + Number(r.price_rwf ?? 0) * Number(r.quantity ?? 0), 0);
+
+        if (!cancelled) setMetrics({ productCount, orderCount: uniqueOrders.size, salesRwf });
+      } catch {
+        if (!cancelled) setMetrics({ productCount: 0, orderCount: 0, salesRwf: 0 });
+      } finally {
+        if (!cancelled) setMetricsLoading(false);
+      }
+    }
+
+    void loadMetrics();
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase, user, ownedVendorIds, products]);
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="container py-10">
+          <div className="rounded-lg border border-iwanyu-border bg-white p-6">
+            <div className="text-lg font-semibold text-gray-900">Sign in required</div>
+            <div className="mt-1 text-sm text-gray-600">Please sign in to access seller tools.</div>
+            <div className="mt-4">
+              <Link to="/login">
+                <Button className="rounded-full bg-iwanyu-primary text-white hover:bg-iwanyu-primary/90">Go to login</Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isSellerOrAdmin) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="container py-10">
+          <div className="rounded-lg border border-iwanyu-border bg-white p-6">
+            <div className="text-lg font-semibold text-gray-900">Seller role required</div>
+            <div className="mt-1 text-sm text-gray-600">Apply to become a vendor before listing products.</div>
+            <div className="mt-4 flex gap-3">
+              <Link to="/vendor-application">
+                <Button className="rounded-full bg-iwanyu-primary text-white hover:bg-iwanyu-primary/90">Apply to sell</Button>
+              </Link>
+              <Link to="/">
+                <Button variant="outline" className="rounded-full">Storefront</Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -113,8 +211,8 @@ export default function SellerDashboardPage() {
                 <CardTitle className="text-sm">Sales</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{formatMoney(0)}</div>
-                <div className="text-xs text-gray-600">Metrics</div>
+                <div className="text-2xl font-bold text-gray-900">{metricsLoading ? "…" : formatMoney(metrics.salesRwf)}</div>
+                <div className="text-xs text-gray-600">Order items total</div>
               </CardContent>
             </Card>
             <Card>
@@ -122,8 +220,8 @@ export default function SellerDashboardPage() {
                 <CardTitle className="text-sm">Orders</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">0</div>
-                <div className="text-xs text-gray-600">Metrics</div>
+                <div className="text-2xl font-bold text-gray-900">{metricsLoading ? "…" : metrics.orderCount}</div>
+                <div className="text-xs text-gray-600">Unique orders</div>
               </CardContent>
             </Card>
             <Card>
@@ -131,8 +229,8 @@ export default function SellerDashboardPage() {
                 <CardTitle className="text-sm">Products</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">0</div>
-                <div className="text-xs text-gray-600">Metrics</div>
+                <div className="text-2xl font-bold text-gray-900">{metricsLoading ? "…" : metrics.productCount}</div>
+                <div className="text-xs text-gray-600">Listings</div>
               </CardContent>
             </Card>
           </div>

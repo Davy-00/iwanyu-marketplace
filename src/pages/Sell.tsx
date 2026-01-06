@@ -25,10 +25,100 @@ export default function SellPage() {
   const [location, setLocation] = useState("Kigali, Rwanda");
   const [application, setApplication] = useState<VendorApplication | null>(null);
   const [loadingApplication, setLoadingApplication] = useState(false);
+  
+  // Real seller statistics
+  const [sellerStats, setSellerStats] = useState({
+    totalProducts: 0,
+    totalSales: 0,
+    ordersToday: 0,
+    averageRating: 0
+  });
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
 
   const supabase = getSupabaseClient();
 
   const myVendors = useMemo(() => (user ? getVendorsForOwner(user.id) : []), [user, getVendorsForOwner]);
+
+  // Load seller statistics
+  const loadSellerStats = async () => {
+    if (!user || !supabase || myVendors.length === 0) {
+      setStatsLoading(false);
+      return;
+    }
+
+    try {
+      const vendorId = myVendors[0].id;
+      
+      // Get product count
+      const { data: products } = await supabase
+        .from('products')
+        .select('id')
+        .eq('vendor_id', vendorId);
+      
+      // Get sales + orders via order_items (orders table is buyer-centric)
+      const { data: orderItems } = await supabase
+        .from('order_items')
+        .select('order_id, created_at, status, price_rwf, quantity')
+        .eq('vendor_id', vendorId)
+        .order('created_at', { ascending: false })
+        .limit(200);
+
+      const items = (orderItems ?? []) as Array<{
+        order_id: string;
+        created_at?: string;
+        status?: string;
+        price_rwf: number;
+        quantity: number;
+      }>;
+
+      const uniqueOrders = new Set(items.map((i) => i.order_id));
+      const totalSales = items.reduce((sum, i) => sum + Number(i.price_rwf ?? 0) * Number(i.quantity ?? 0), 0);
+
+      // Best-effort: compute today's orders if created_at exists
+      const today = new Date().toISOString().split('T')[0];
+      const ordersToday = new Set(
+        items
+          .filter((i) => (i.created_at ? i.created_at >= today : false))
+          .map((i) => i.order_id)
+      );
+      
+      setSellerStats({
+        totalProducts: products?.length || 0,
+        totalSales: totalSales || 0,
+        ordersToday: ordersToday.size || 0,
+        averageRating: 0,
+      });
+      
+      // Format recent activity
+      const activity = Array.from(uniqueOrders)
+        .slice(0, 5)
+        .map((orderId) => {
+          const first = items.find((i) => i.order_id === orderId);
+          const status = first?.status ?? 'Placed';
+          const time = first?.created_at ? new Date(first.created_at).toLocaleString() : '';
+          return {
+            type: 'Order',
+            desc: `Order #${orderId.slice(-8)} - ${status}`,
+            time,
+            status: status === 'completed' ? 'success' : 'info'
+          };
+        });
+      
+      setRecentActivity(activity);
+    } catch (error) {
+      console.error('Error loading seller stats:', error);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  // Load seller stats when vendor is available
+  useEffect(() => {
+    if (myVendors.length > 0) {
+      loadSellerStats();
+    }
+  }, [myVendors]);
 
   // If user has no vendor yet, check whether they already submitted an application.
   // (We keep this page simple: show the most recent application only.)
@@ -65,26 +155,49 @@ export default function SellPage() {
         </div>
         
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-          {[
-            { title: 'Total Products', value: '24', icon: '📦', color: 'bg-blue-50 text-blue-600' },
-            { title: 'Total Sales', value: 'RWF 450K', icon: '💰', color: 'bg-green-50 text-green-600' },
-            { title: 'Orders Today', value: '8', icon: '🛒', color: 'bg-purple-50 text-purple-600' },
-            { title: 'Reviews', value: '4.8★', icon: '⭐', color: 'bg-yellow-50 text-yellow-600' }
-          ].map((stat) => (
-            <div key={stat.title} className="bg-white rounded-2xl border border-iwanyu-border p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">{stat.title}</p>
-                  <p className="text-2xl font-bold text-iwanyu-foreground">{stat.value}</p>
-                </div>
-                <div className={`w-12 h-12 rounded-xl ${stat.color} flex items-center justify-center text-xl`}>
-                  {stat.icon}
+        {myVendors.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+            {[
+              { title: 'Total Products', value: statsLoading ? '...' : sellerStats.totalProducts.toString(), icon: '📦', color: 'bg-blue-50 text-blue-600' },
+              { title: 'Total Sales', value: statsLoading ? '...' : `RWF ${(sellerStats.totalSales / 1000).toFixed(0)}K`, icon: '💰', color: 'bg-green-50 text-green-600' },
+              { title: 'Orders Today', value: statsLoading ? '...' : sellerStats.ordersToday.toString(), icon: '🛒', color: 'bg-purple-50 text-purple-600' },
+              { title: 'Reviews', value: sellerStats.averageRating > 0 ? `${sellerStats.averageRating}★` : '-', icon: '⭐', color: 'bg-yellow-50 text-yellow-600' }
+            ].map((stat) => (
+              <div key={stat.title} className="bg-white rounded-2xl border border-iwanyu-border p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">{stat.title}</p>
+                    <p className="text-2xl font-bold text-iwanyu-foreground">{stat.value}</p>
+                  </div>
+                  <div className={`w-12 h-12 rounded-xl ${stat.color} flex items-center justify-center text-xl`}>
+                    {stat.icon}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+            {[
+              { title: 'Total Products', value: '-', icon: '📦', color: 'bg-gray-50 text-gray-400' },
+              { title: 'Total Sales', value: '-', icon: '💰', color: 'bg-gray-50 text-gray-400' },
+              { title: 'Orders Today', value: '-', icon: '🛒', color: 'bg-gray-50 text-gray-400' },
+              { title: 'Reviews', value: '-', icon: '⭐', color: 'bg-gray-50 text-gray-400' }
+            ].map((stat) => (
+              <div key={stat.title} className="bg-white rounded-2xl border border-iwanyu-border p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">{stat.title}</p>
+                    <p className="text-2xl font-bold text-iwanyu-foreground">{stat.value}</p>
+                  </div>
+                  <div className={`w-12 h-12 rounded-xl ${stat.color} flex items-center justify-center text-xl`}>
+                    {stat.icon}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Quick Actions */}
@@ -116,28 +229,31 @@ export default function SellPage() {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-2xl border border-iwanyu-border p-8">
               <h3 className="text-2xl font-semibold text-iwanyu-foreground mb-6">Recent Activity</h3>
-              <div className="space-y-4">
-                {[
-                  { type: 'Order', desc: 'New order for Summer Dress', time: '2 hours ago', status: 'success' },
-                  { type: 'Product', desc: 'Winter Jacket updated', time: '5 hours ago', status: 'info' },
-                  { type: 'Review', desc: 'New 5-star review received', time: '1 day ago', status: 'success' },
-                  { type: 'Stock', desc: 'Low stock alert for Sneakers', time: '2 days ago', status: 'warning' }
-                ].map((activity, index) => (
-                  <div key={index} className="flex items-center p-4 border border-gray-200 rounded-xl">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-4 ${
-                      activity.status === 'success' ? 'bg-green-100 text-green-600' :
-                      activity.status === 'warning' ? 'bg-yellow-100 text-yellow-600' :
-                      'bg-blue-100 text-blue-600'
-                    }`}>
-                      {activity.status === 'success' ? '✓' : activity.status === 'warning' ? '⚠' : 'ℹ'}
+              {recentActivity.length > 0 ? (
+                <div className="space-y-4">
+                  {recentActivity.map((activity, index) => (
+                    <div key={index} className="flex items-center p-4 border border-gray-200 rounded-xl">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-4 ${
+                        activity.status === 'success' ? 'bg-green-100 text-green-600' :
+                        activity.status === 'warning' ? 'bg-yellow-100 text-yellow-600' :
+                        'bg-blue-100 text-blue-600'
+                      }`}>
+                        {activity.status === 'success' ? '✓' : activity.status === 'warning' ? '⚠' : 'ℹ'}
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-iwanyu-foreground">{activity.desc}</div>
+                        <div className="text-sm text-gray-600">{activity.time}</div>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <div className="font-medium text-iwanyu-foreground">{activity.desc}</div>
-                      <div className="text-sm text-gray-600">{activity.time}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-gray-400 mb-2">📊</div>
+                  <div className="text-gray-600">No recent activity</div>
+                  <div className="text-sm text-gray-500 mt-1">Activity will appear here once you start receiving orders</div>
+                </div>
+              )}
             </div>
           </div>
         </div>
