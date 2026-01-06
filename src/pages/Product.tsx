@@ -29,6 +29,28 @@ export default function ProductPage() {
 
   const vendor = product?.vendorId ? getVendorById(product.vendorId) : undefined;
 
+  const galleryMedia = useMemo<ProductMedia[]>(() => {
+    if (!product) return [];
+
+    const fallback: ProductMedia[] = product.image
+      ? [{ id: `primary-${product.id}`, kind: "image", url: product.image }]
+      : [];
+
+    const source = media.length > 0 ? media : fallback;
+
+    // De-dupe by kind+url to avoid repeated thumbnails.
+    const seen = new Set<string>();
+    const deduped: ProductMedia[] = [];
+    for (const m of source) {
+      const key = `${m.kind}:${m.url}`;
+      if (!m.url || seen.has(key)) continue;
+      seen.add(key);
+      deduped.push(m);
+    }
+
+    return deduped;
+  }, [media, product]);
+
   useEffect(() => {
     let cancelled = false;
     async function load() {
@@ -85,8 +107,8 @@ export default function ProductPage() {
         <div className="grid gap-12 md:grid-cols-2 lg:gap-16">
           <div className="rounded-2xl border border-iwanyu-border bg-iwanyu-muted p-12">
             {(() => {
-              const firstImage = media.find((m) => m.kind === "image")?.url ?? product.image;
-              const firstVideo = media.find((m) => m.kind === "video")?.url ?? "";
+              const firstImage = galleryMedia.find((m) => m.kind === "image")?.url ?? product.image;
+              const firstVideo = galleryMedia.find((m) => m.kind === "video")?.url ?? "";
 
               if (firstImage) {
                 return (
@@ -113,10 +135,13 @@ export default function ProductPage() {
               return <div className="mx-auto flex h-72 w-72 items-center justify-center text-sm text-gray-500">No media</div>;
             })()}
 
-            {media.length > 1 ? (
+            {galleryMedia.length > 1 ? (
               <div className="mt-6 grid grid-cols-3 gap-3 lg:grid-cols-4">
-                {media.slice(0, 12).map((m) => (
-                  <div key={m.id} className="rounded-xl border border-iwanyu-border bg-white p-2 hover:shadow-md transition-shadow cursor-pointer">
+                {galleryMedia.slice(0, 12).map((m) => (
+                  <div
+                    key={m.id}
+                    className="rounded-xl border border-iwanyu-border bg-white p-2 hover:shadow-md transition-shadow"
+                  >
                     {m.kind === "image" ? (
                       <img
                         src={getOptimizedCloudinaryUrl(m.url, { kind: "image", width: 300 })}
@@ -135,17 +160,7 @@ export default function ProductPage() {
                   </div>
                 ))}
               </div>
-            ) : (
-              <div className="mt-6 grid grid-cols-2 gap-3 opacity-50">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="bg-gray-100 rounded-xl p-4 h-20 flex items-center justify-center text-gray-400">
-                    <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" />
-                    </svg>
-                  </div>
-                ))}
-              </div>
-            )}
+            ) : null}
           </div>
 
           <div className="space-y-8">
