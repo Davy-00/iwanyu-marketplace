@@ -8,7 +8,7 @@ export default function Deals() {
 
   return (
     <StorefrontPage>
-      <div className="container py-8">
+      <div className="container min-h-screen py-12">
         <h1 className="text-3xl font-bold text-iwanyu-foreground">Deals</h1>
         <p className="mt-1 text-gray-600">Browse available products.</p>
 

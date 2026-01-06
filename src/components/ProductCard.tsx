@@ -132,20 +132,20 @@ export const ProductCard = ({ product }: ProductCardProps) => {
         </div>
         
         {/* Product Details */}
-        <div className="p-5">
-          <h3 className="mb-3 text-base font-semibold text-iwanyu-foreground line-clamp-2 leading-tight group-hover:text-iwanyu-primary transition-colors duration-200">
+        <div className="p-3">
+          <h3 className="mb-2 text-sm font-semibold text-iwanyu-foreground line-clamp-2 leading-tight group-hover:text-iwanyu-primary transition-colors duration-200">
             {title}
           </h3>
 
           {vendorName ? (
-            <div className="mb-3 text-sm text-gray-600 font-medium">by {vendorName}</div>
+            <div className="mb-2 text-xs text-gray-600 font-medium">by {vendorName}</div>
           ) : null}
           
           {/* Category and Rating Row */}
-          <div className="mb-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          <div className="mb-2 flex items-center justify-between">
+            <div className="flex items-center gap-1">
               {category ? (
-                <Badge variant="secondary" className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-700">
+                <Badge variant="secondary" className="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-700">
                   {category}
                 </Badge>
               ) : null}
@@ -153,31 +153,31 @@ export const ProductCard = ({ product }: ProductCardProps) => {
             
             {/* Rating */}
             <div className="flex items-center">
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-0.5">
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    size={14}
+                    size={12}
                     className={i < Math.floor(rating) ? "fill-amber-400 text-amber-400" : "text-gray-300"}
                     fill={i < Math.floor(rating) ? "currentColor" : "none"}
                   />
                 ))}
               </div>
-              <span className="ml-1.5 text-xs text-gray-500 font-medium">({reviewCount})</span>
+              <span className="ml-1 text-xs text-gray-500 font-medium">({reviewCount})</span>
             </div>
           </div>
           
           {/* Price */}
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xl font-bold text-iwanyu-foreground">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-lg font-bold text-iwanyu-foreground">
               {formatMoney(price)}
             </span>
             
             {/* Free Shipping Badge */}
             {freeShipping && (
-              <div className="flex items-center text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
-                <Check size={12} className="mr-1" />
-                Free shipping
+              <div className="flex items-center text-xs text-green-600 bg-green-50 px-1.5 py-0.5 rounded-full">
+                <Check size={10} className="mr-1" />
+                Free
               </div>
             )}
           </div>

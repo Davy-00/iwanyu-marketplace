@@ -73,7 +73,7 @@ export default function OrdersPage() {
 
   return (
     <StorefrontPage>
-      <div className="container py-8">
+      <div className="container min-h-screen py-12">
         <h1 className="text-3xl font-bold text-iwanyu-foreground">Your Orders</h1>
         <p className="mt-1 text-gray-600">Order history.</p>
 

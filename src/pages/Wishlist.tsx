@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 export default function WishlistPage() {
   return (
     <StorefrontPage>
-      <div className="container py-8">
+      <div className="container min-h-screen py-12">
         <h1 className="text-3xl font-bold text-iwanyu-foreground">Wishlist</h1>
         <p className="mt-1 text-gray-600">Your saved items.</p>
 

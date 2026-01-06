@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, Search, ShoppingCart, User, X, ChevronDown, Heart, Package, Sparkles } from 'lucide-react';
+import { Menu, Search, ShoppingCart, User, X, ChevronDown, Heart, Package, Sparkles, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useCart } from '@/context/cart';
@@ -11,6 +11,7 @@ import { getNavCategoriesWithCounts } from '@/lib/categories';
 export const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
   const { itemCount } = useCart();
   const { user, signOut } = useAuth();
   const { products } = useMarketplace();
@@ -20,19 +21,57 @@ export const Header = () => {
     return getNavCategoriesWithCounts(products).map(({ id, name }) => ({ id, name }));
   }, [products]);
 
+  // Get search suggestions based on current query
+  const searchSuggestions = useMemo(() => {
+    if (!searchQuery.trim() || searchQuery.length < 2) return [];
+    
+    const query = searchQuery.toLowerCase();
+    const suggestions = new Set<string>();
+    
+    // Add matching product titles
+    products.forEach(product => {
+      if (product.title.toLowerCase().includes(query) && suggestions.size < 5) {
+        suggestions.add(product.title);
+      }
+    });
+    
+    // Add matching categories
+    categories.forEach(category => {
+      if (category.name.toLowerCase().includes(query) && suggestions.size < 8) {
+        suggestions.add(category.name);
+      }
+    });
+    
+    return Array.from(suggestions).slice(0, 6);
+  }, [searchQuery, products, categories]);
+
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
+    setShowSearchSuggestions(e.target.value.length > 1);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setShowSearchSuggestions(false);
     }
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    navigate('/search');
+    setShowSearchSuggestions(false);
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setSearchQuery(suggestion);
+    setShowSearchSuggestions(false);
+    navigate(`/search?q=${encodeURIComponent(suggestion)}`);
   };
 
   return (
@@ -65,7 +104,7 @@ export const Header = () => {
             </Link>
             
             {/* Search Bar */}
-            <div className="hidden md:flex flex-1">
+            <div className="hidden md:flex flex-1 max-w-xl mx-8 relative">
               <form onSubmit={handleSearchSubmit} className="w-full relative group">
                 <div className="relative">
                   <Search 
@@ -74,19 +113,49 @@ export const Header = () => {
                   />
                   <Input
                     type="text"
-                    placeholder="Search for products, brands and categories..."
+                    placeholder="Search products, brands, categories..."
                     value={searchQuery}
                     onChange={handleSearchChange}
-                    className="h-12 w-full rounded-full border-2 border-gray-200 bg-gray-50 pl-12 pr-32 text-sm text-gray-900 placeholder:text-gray-400 focus-visible:border-iwanyu-primary focus-visible:bg-white focus-visible:ring-0 focus-visible:ring-offset-0 transition-all"
+                    onFocus={() => searchQuery.length > 1 && setShowSearchSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowSearchSuggestions(false), 200)}
+                    className="h-12 w-full rounded-full border-2 border-gray-200 bg-white pl-12 pr-32 text-sm text-gray-900 placeholder:text-gray-400 focus-visible:border-iwanyu-primary focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-iwanyu-primary/20 focus-visible:ring-offset-0 transition-all shadow-sm hover:border-gray-300"
                   />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={handleClearSearch}
+                      className="absolute right-20 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      <XCircle size={16} />
+                    </button>
+                  )}
                   <Button
                     type="submit"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-10 px-6 rounded-full bg-gradient-to-r from-iwanyu-primary to-orange-500 text-white font-semibold hover:brightness-110 transition-all shadow-md hover:shadow-lg"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-10 px-4 rounded-full bg-gradient-to-r from-iwanyu-primary to-orange-500 text-white font-medium hover:brightness-110 transition-all shadow-md hover:shadow-lg text-sm"
                   >
                     Search
                   </Button>
                 </div>
               </form>
+              
+              {/* Search Suggestions */}
+              {showSearchSuggestions && searchSuggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl border border-gray-200 shadow-xl z-50">
+                  <div className="p-2">
+                    <div className="text-xs font-medium text-gray-500 px-3 py-2">Suggestions</div>
+                    {searchSuggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg flex items-center gap-2"
+                      >
+                        <Search size={14} className="text-gray-400" />
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Desktop Nav Items */}
@@ -226,11 +295,18 @@ export const Header = () => {
               />
               <Input
                 type="text"
-                placeholder="Search iwanyu marketplace"
+                placeholder="Search products..."
                 value={searchQuery}
                 onChange={handleSearchChange}
-                className="h-11 w-full rounded-full border-2 border-gray-200 bg-gray-50 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus-visible:border-iwanyu-primary focus-visible:bg-white focus-visible:ring-0"
+                className="h-11 w-full rounded-full border-2 border-gray-200 bg-white pl-10 pr-20 text-sm text-gray-900 placeholder:text-gray-400 focus-visible:border-iwanyu-primary focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-iwanyu-primary/20 shadow-sm"
               />
+              <Button
+                type="submit"
+                size="sm"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-9 px-3 rounded-full bg-iwanyu-primary text-white hover:bg-iwanyu-primary/90"
+              >
+                Go
+              </Button>
             </form>
           </div>
         </div>

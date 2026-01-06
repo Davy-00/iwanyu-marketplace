@@ -11,15 +11,21 @@ export default function CartPage() {
 
   return (
     <StorefrontPage>
-      <div className="container py-8">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h1 className="text-3xl font-bold text-iwanyu-foreground">Cart</h1>
-            <p className="mt-1 text-sm text-gray-600">{itemCount} item{itemCount === 1 ? "" : "s"}</p>
+      <div className="container min-h-screen py-12">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-iwanyu-foreground mb-4">Your Shopping Cart</h1>
+          <div className="flex items-center justify-between">
+            <p className="text-lg text-gray-600">{itemCount} item{itemCount === 1 ? "" : "s"} in your cart</p>
+            <Link to="/" className="text-sm font-medium text-iwanyu-primary hover:underline px-4 py-2 rounded-full bg-iwanyu-primary/10 transition-colors">
+              ← Continue Shopping
+            </Link>
           </div>
-          <Link to="/" className="text-sm font-medium text-iwanyu-primary hover:underline">
-            Continue shopping
-          </Link>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            {/* Cart items will render here */}
+          </div>
         </div>
 
         {items.length === 0 ? (

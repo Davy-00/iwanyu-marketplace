@@ -44,7 +44,7 @@ export default function CheckoutPage() {
 
   return (
     <StorefrontPage>
-      <div className="container py-8">
+      <div className="container min-h-screen py-12">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-iwanyu-foreground">Checkout</h1>
           <Link to="/cart" className="text-sm font-medium text-iwanyu-primary hover:underline">

@@ -58,8 +58,89 @@ export default function SellPage() {
 
   return (
     <StorefrontPage>
-      <div className="container py-8">
-        <h1 className="text-3xl font-bold text-iwanyu-foreground">Sell on iwanyu</h1>
+      <div className="container min-h-screen py-12">
+        <div className="mb-12">
+          <h1 className="text-4xl font-bold text-iwanyu-foreground mb-4">Seller Dashboard</h1>
+          <p className="text-lg text-gray-600">Manage your products and grow your business</p>
+        </div>
+        
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+          {[
+            { title: 'Total Products', value: '24', icon: '📦', color: 'bg-blue-50 text-blue-600' },
+            { title: 'Total Sales', value: 'RWF 450K', icon: '💰', color: 'bg-green-50 text-green-600' },
+            { title: 'Orders Today', value: '8', icon: '🛒', color: 'bg-purple-50 text-purple-600' },
+            { title: 'Reviews', value: '4.8★', icon: '⭐', color: 'bg-yellow-50 text-yellow-600' }
+          ].map((stat) => (
+            <div key={stat.title} className="bg-white rounded-2xl border border-iwanyu-border p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">{stat.title}</p>
+                  <p className="text-2xl font-bold text-iwanyu-foreground">{stat.value}</p>
+                </div>
+                <div className={`w-12 h-12 rounded-xl ${stat.color} flex items-center justify-center text-xl`}>
+                  {stat.icon}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Quick Actions */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-2xl border border-iwanyu-border p-6">
+              <h2 className="text-xl font-semibold text-iwanyu-foreground mb-6">Quick Actions</h2>
+              <div className="space-y-4">
+                {[
+                  { name: 'Add New Product', desc: 'List a new item for sale', icon: '➕' },
+                  { name: 'Manage Inventory', desc: 'Update stock levels', icon: '📊' },
+                  { name: 'View Orders', desc: 'Check recent orders', icon: '📋' },
+                  { name: 'Analytics', desc: 'View sales reports', icon: '📈' }
+                ].map((action) => (
+                  <div key={action.name} className="p-4 border border-gray-200 rounded-xl hover:border-iwanyu-primary hover:bg-iwanyu-primary/5 cursor-pointer transition-all">
+                    <div className="flex items-center">
+                      <span className="mr-3 text-xl">{action.icon}</span>
+                      <div>
+                        <div className="font-medium text-iwanyu-foreground">{action.name}</div>
+                        <div className="text-sm text-gray-600">{action.desc}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          {/* Recent Activity */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-2xl border border-iwanyu-border p-8">
+              <h3 className="text-2xl font-semibold text-iwanyu-foreground mb-6">Recent Activity</h3>
+              <div className="space-y-4">
+                {[
+                  { type: 'Order', desc: 'New order for Summer Dress', time: '2 hours ago', status: 'success' },
+                  { type: 'Product', desc: 'Winter Jacket updated', time: '5 hours ago', status: 'info' },
+                  { type: 'Review', desc: 'New 5-star review received', time: '1 day ago', status: 'success' },
+                  { type: 'Stock', desc: 'Low stock alert for Sneakers', time: '2 days ago', status: 'warning' }
+                ].map((activity, index) => (
+                  <div key={index} className="flex items-center p-4 border border-gray-200 rounded-xl">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-4 ${
+                      activity.status === 'success' ? 'bg-green-100 text-green-600' :
+                      activity.status === 'warning' ? 'bg-yellow-100 text-yellow-600' :
+                      'bg-blue-100 text-blue-600'
+                    }`}>
+                      {activity.status === 'success' ? '✓' : activity.status === 'warning' ? '⚠' : 'ℹ'}
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-iwanyu-foreground">{activity.desc}</div>
+                      <div className="text-sm text-gray-600">{activity.time}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
         <p className="mt-1 text-gray-600">Seller onboarding.</p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-3">

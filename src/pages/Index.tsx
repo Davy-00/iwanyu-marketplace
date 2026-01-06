@@ -50,13 +50,13 @@ const Index = () => {
               {[1, 2, 3].map((i) => (
                 <div key={i}>
                   <div className="h-8 bg-gray-200 rounded-xl w-48 mb-6 animate-pulse"></div>
-                  <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-                    {[...Array(6)].map((_, j) => (
+                  <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8">
+                    {[...Array(8)].map((_, j) => (
                       <div key={j} className="animate-pulse">
-                        <div className="bg-gray-200 aspect-[4/3] rounded-2xl mb-3"></div>
-                        <div className="h-4 bg-gray-200 rounded-lg mb-2"></div>
-                        <div className="h-4 bg-gray-200 rounded-lg w-3/4 mb-2"></div>
-                        <div className="h-5 bg-gray-200 rounded-lg w-2/3"></div>
+                        <div className="bg-gray-200 aspect-[3/4] rounded-2xl mb-2"></div>
+                        <div className="h-3 bg-gray-200 rounded-lg mb-1"></div>
+                        <div className="h-3 bg-gray-200 rounded-lg w-3/4 mb-1"></div>
+                        <div className="h-4 bg-gray-200 rounded-lg w-2/3"></div>
                       </div>
                     ))}
                   </div>
@@ -188,7 +188,7 @@ const CategorySection = ({ category, products, categoryId }: CategorySectionProp
         {/* Horizontal Scrolling Product Grid */}
         <div
           ref={scrollContainerRef}
-          className="flex gap-6 overflow-x-auto scrollbar-hide pb-4"
+          className="flex gap-4 overflow-x-auto scrollbar-hide pb-4"
           style={{
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',
@@ -197,7 +197,7 @@ const CategorySection = ({ category, products, categoryId }: CategorySectionProp
           {products.slice(0, 15).map((product) => (
             <div
               key={product.id}
-              className="flex-none w-[200px] sm:w-[240px] md:w-[260px] lg:w-[280px] xl:w-[300px]"
+              className="flex-none w-[160px] sm:w-[180px] md:w-[200px] lg:w-[220px] xl:w-[240px]"
             >
               <ProductCard product={product} />
             </div>

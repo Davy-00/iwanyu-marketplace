@@ -53,7 +53,7 @@ export default function CategoryPage() {
             <p className="text-gray-600">Try browsing other categories or check back later.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7">
+          <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8">
             {filtered.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
