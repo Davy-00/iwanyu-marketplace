@@ -36,6 +36,7 @@ import VendorApplicationPage from "./pages/VendorApplication";
 import PrivacyPolicyPage from "./pages/PrivacyPolicy";
 import TermsOfServicePage from "./pages/TermsOfService";
 import RequireAuth from "./components/RequireAuth";
+import ScrollToTop from "@/components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
@@ -182,6 +183,7 @@ const App = () => (
           <WishlistProvider>
             <CartProvider>
               <BrowserRouter>
+                <ScrollToTop />
                 <AppContent />
               </BrowserRouter>
             </CartProvider>
